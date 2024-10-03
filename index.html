@@ -33,7 +33,7 @@
 	<link rel="icon" type="image/png" sizes="16x16"
 		href="https://tools.heho.com.tw/assets/img/favicon/favicon-16x16.png">
 	<link rel="manifest" href="https://tools.heho.com.tw/assets/img/favicon/site.webmanifest"> -->
-	
+
 	<!-- Google tag (gtag.js) -->
 	<script async="" src="./index_files/js"></script>
 	<script>
@@ -166,6 +166,45 @@
 			z-index: 100001;
 		}
 	</style>
+
+<style>
+	.bmr-card {
+		background-color: #81C0C0; /* 改變背景顏色 */
+		padding: 20px; /* 添加內邊距 */
+		border: none; /* 去掉邊框 */
+		border-radius: 10px; /* 添加圓角 */
+		box-shadow: none; /* 去掉陰影 */
+	}
+
+	/* 調整標題和段落的樣式 */
+	.bmr-card h1 {
+		font-size: 24px;
+		margin-bottom: 10px;
+	}
+
+	.bmr-card p {
+		margin: 10px 0;
+		font-size: 15px;
+	}
+
+	/* 按鈕樣式 */
+	.bmr-card button {
+		background-color: #005757	; /* 按鈕背景顏色 */
+		color: white; /* 按鈕文字顏色 */
+		padding: 10px 20px; /* 按鈕內邊距 */
+		border: none; /* 去掉按鈕邊框 */
+		border-radius: 5px; /* 按鈕圓角 */
+		cursor: pointer; /* 鼠標變成手指形狀 */
+	}
+
+	.bmr-card button:hover {
+		background-color: #484891; /* 懸停效果 */
+	}
+
+	
+</style>
+
+
 	<meta http-equiv="origin-trial"
 		content="AxjhRadLCARYRJawRjMjq4U8V8okQvSnrBIJWdMajuEkN3/DfVAcLcFhMVrUWnOXagwlI8dQD84FwJDGj9ohqAYAAABveyJvcmlnaW4iOiJodHRwczovL2dvb2dsZWFkc2VydmljZXMuY29tOjQ0MyIsImZlYXR1cmUiOiJGZXRjaExhdGVyQVBJIiwiZXhwaXJ5IjoxNzI1NDA3OTk5LCJpc1RoaXJkUGFydHkiOnRydWV9">
 	<script async=""
@@ -180,9 +219,7 @@
 	</div>
 	<!-- End Nav
 ================================================== -->
-	<div class="for-mobile"><a href="https://tools.heho.com.tw/bmr/#1">❶ 計算 BMR</a> ➔ <a
-			href="https://tools.heho.com.tw/bmr/#2">❷ 計算熱量消耗</a> ➔ <a href="https://tools.heho.com.tw/bmr/#3">❸
-			計算飲食攝取</a></div>
+
 
 	<div class="container" id="1" style="height: auto !important;">
 		<div class="row justify-content-center bmr-content" style="height: auto !important;">
@@ -190,7 +227,8 @@
 				<div class="bmr-img"></div>
 				<div class="bmr-card">
 					<h1>心率储量 (hrr) 計算機</h1>
-					<p style="font-size: 15px;">心率儲備量（HRR，心率儲備）是短期心臟健康狀況以及個體運動能力的重要指標。訓練計劃。</p>
+					<p style="font-size: 15px;">心率儲備量（HRR，心率儲備）是短期心臟健康狀況以及個體運動能力的重要指標。|安靜新率為平靜狀態下1分鐘的心跳次數|
+					</p>
 					<div class="mt-20">
 						<p>生理性別：
 							<label>
@@ -206,14 +244,14 @@
 						<p>身高：<input type="number" id="s" placeholder="請輸入身高 (公分)"></p>
 						<div id="2"> </div>
 						<p>體重：<input type="number" id="w" placeholder="請輸入體重 (公斤)"></p>
-						<p>安靜心率：<input type="number" id="hrmin" placeholder="請輸入一分鐘安靜心率 (下/1分鐘)"></p>
-						<p>每週目標：<input type="number" id="goal" placeholder="請輸入每週目標減去體重 (公斤)"></p>
+						<p>安靜心率：<input type="number" id="hrmin" placeholder="請輸入安靜心率 (下/1分鐘)"></p>
+						<p>每週目標：<input type="number" id="goal" placeholder="減去體重 (公斤)"></p>
 						<p>運動天數<input type="number" id="day" placeholder="不能超過7天！"></p>
 						<button type="button" onclick="calculateHR()">計算</button>
 						
 						
 					</div>
-					<h4 id="rmr"></h4>
+					<!-- <h4 id="rmr"></h4> -->
 					<h3 id="result"></h3>
 				</div>
 			</div>
@@ -777,8 +815,8 @@
 
 				if (error_result) {
 					let calc_result = Math.round(wc * w + sc * s - ac * age + (gc * g - c));
-					let h4str =
-						`計算公式 (Mifflin-St Jeor formula) ${wc} × 體重 + ${sc} × 身高 - ${ac} × 年齡 +(166 × 性別 (男 1、女 0) - ${c}) = 基礎代謝率 (BMR)`;
+					// let h4str =
+					// 	`計算公式 (Mifflin-St Jeor formula) ${wc} × 體重 + ${sc} × 身高 - ${ac} × 年齡 +(166 × 性別 (男 1、女 0) - ${c}) = 基礎代謝率 (BMR)`;
 					$('#result').text('基礎代謝率 (BMR) 計算結果：' + calc_result);
 					/*HEHO*/
 					// $('#tdee-nutrition').val(calc_result);
