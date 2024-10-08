@@ -219,12 +219,14 @@
 	</div>
 	<!-- End Nav
 ================================================== -->
-
+	<!-- <div class="for-mobile"><a href="https://tools.heho.com.tw/bmr/#1">❶ 計算 BMR</a> ➔ <a
+			href="https://tools.heho.com.tw/bmr/#2">❷ 計算熱量消耗</a> ➔ <a href="https://tools.heho.com.tw/bmr/#3">❸
+			計算飲食攝取</a></div> -->
 
 	<div class="container" id="1" style="height: auto !important;">
 		<div class="row justify-content-center bmr-content" style="height: auto !important;">
 			<div class="col-lg-5" id="bmr-input">
-				<div class="bmr-img"></div>
+				
 				<div class="bmr-card">
 					<h1>心率储量 (hrr) 計算機</h1>
 					<p style="font-size: 15px;">心率儲備量（HRR，心率儲備）是短期心臟健康狀況以及個體運動能力的重要指標。|安靜新率為平靜狀態下1分鐘的心跳次數|
@@ -232,11 +234,11 @@
 					<div class="mt-20">
 						<p>生理性別：
 							<label>
-								<input type="radio" name="g" value="1" checked="checked"> <img
+								<input type="radio" name="g" value="1" checked="checked" onchange="calculateTDEE()"> <img
 									src="./index_files/male.png" width="38px">男性
 							</label>
 							<label class="pl-1">
-								<input type="radio" name="g" value="0"> <img
+								<input type="radio" name="g" value="0" onchange="calculateTDEE()"> <img
 									src="./index_files/Female.png" width="28px"> 女性
 							</label>
 						</p>
@@ -244,18 +246,243 @@
 						<p>身高：<input type="number" id="s" placeholder="請輸入身高 (公分)"></p>
 						<div id="2"> </div>
 						<p>體重：<input type="number" id="w" placeholder="請輸入體重 (公斤)"></p>
-						<p>安靜心率：<input type="number" id="hrmin" placeholder="請輸入安靜心率 (下/1分鐘)"></p>
-						<p>每週目標：<input type="number" id="goal" placeholder="減去體重 (公斤)"></p>
-						<p>運動天數<input type="number" id="day" placeholder="不能超過7天！"></p>
-						<button type="button" onclick="calculateHR()">計算</button>
+						<p>安靜心率：<input type="number" id="hrmin" placeholder="(下/1分鐘)"></p>
+						<p>每月目標：<input type="number" id="goal" placeholder="減去體重 (公斤)">(正常建議一個月1-2公斤)</p>
+						<p>預計一週運動天數<input type="number" id="day" placeholder="不能超過7天！"></p>
+						
+						<!-- 活動頻率選擇 -->
+						<label for="activity">活動頻率：</label>
+						<select id="activity">
+							<option value="1.2">幾乎不運動</option>
+							<option value="1.375">每週運動 1-3 天</option>
+							<option value="1.55">每週運動 3-5 天</option>
+							<option value="1.72">每週運動 6-7 天</option>
+							<option value="1.9">長時間運動或體力勞動工作</option>
+						</select>
+						<button type="button" onclick="calculateHR(); daygoal()">計算</button>
 						
 						
 					</div>
 					<!-- <h4 id="rmr"></h4> -->
 					<h3 id="result"></h3>
+					<script>
+						// 假設的常數計算系數
+						const wc = 10, sc = 6.25, ac = 5, gc = 5, c = 161; 
+					
+						function calculateTDEE() {
+							// 取得用戶輸入的數據
+							const age = parseInt(document.getElementById('age').value) || 0;
+							const s = parseFloat(document.getElementById('s').value) || 0;
+							const w = parseFloat(document.getElementById('w').value) || 0;
+							const genderValue = parseInt(document.querySelector('input[name="g"]:checked').value) || 0;
+
+							// 計算 g 的值
+    						const g = (genderValue === 1) ? (166 / 5) : 0;
+
+
+							// 計算 BMR
+							let calc_result = Math.round(wc * w + sc * s - ac * age + (gc * g - c));
+						
+							// 取得活動等級的值並計算 TDEE
+							let activityLevel = parseFloat(document.getElementById('activity').value);
+							let adjustedResult = Math.round(calc_result * activityLevel * 100) / 100;
+					
+							// 更新顯示結果
+							document.getElementById('result').textContent = '基礎代謝率 (TDEE) 計算結果：' + adjustedResult;
+						}
+					
+						// 監聽活動頻率選項的更動事件，執行計算
+						document.getElementById('activity').addEventListener('change', calculateTDEE);
+						document.getElementById('age').addEventListener('input', calculateTDEE);
+						document.getElementById('s').addEventListener('input', calculateTDEE);
+						document.getElementById('w').addEventListener('input', calculateTDEE);
+						document.getElementById('hrmin').addEventListener('input', calculateTDEE);
+						document.getElementById('mgoal').addEventListener('input', calculateTDEE);
+
+						// 初次計算
+						calculateTDEE();
+					</script>
+					
 				</div>
 			</div>
 			<div class="col-lg-7">
+				 <!-- 建議的運動表格顯示區域 -->
+				 <div id="exercise-suggestions" style="display: none;">
+					<h4 style="text-align: center ; ">每日運動建議</h4>
+					
+					<table border="1">
+						<thead>
+							<tr>
+								<th>運動強度 (%HRR)</th>
+								<th>建議運動時間 (分鐘)</th>
+								<th>目標心率</th>
+							</tr>
+						</thead>
+						<tbody id="exercise-table-body"></tbody>
+					</table>
+				</div>
+
+
+				<div class="exercise-plan">
+					<h3 style="text-align: center ; ">每週自訂運動計畫</h3>
+
+					<div id="exercise-table"></div>
+					<h4  id="calorie-goal"  style="font-size: 17px;"></h4>	
+					<button id="calculate-time-btn">計算!</button>
+				</div>
+				<div id="calorie-goal" style="font-size: 16px; background-color: yellow; padding: 10px; border-radius: 5px;">
+					(請依照下方運動強度指標對應表選擇運動強度!!)
+				</div>
+			</div>
+
+				<script>
+					// 設定年齡範圍和運動強度(%HRR)對應
+					const ageRanges = [
+						{ minAge: 20, maxAge: 24, hrr: 0.80 },
+						{ minAge: 25, maxAge: 29, hrr: 0.75 },
+						{ minAge: 30, maxAge: 34, hrr: 0.70 },
+						{ minAge: 35, maxAge: 39, hrr: 0.65 },
+						{ minAge: 40, maxAge: 44, hrr: 0.60 },
+						{ minAge: 45, maxAge: 49, hrr: 0.55 },
+						{ minAge: 50, maxAge: 54, hrr: 0.50 },
+						{ minAge: 55, maxAge: 100, hrr: 0.40 }
+					];
+
+					function calculateTargetHR(hrr) {
+						const hrmin = parseFloat(document.getElementById('hrmin').value);
+						const age = parseInt(document.getElementById('age').value);
+						return Math.round(hrmin + (220 - age - hrmin) * hrr);
+					}
+
+					function daygoal() {
+						const age = parseInt(document.getElementById('age').value);
+						const weight = parseFloat(document.getElementById('w').value) || 0;
+						const goal = parseFloat(document.getElementById('goal').value) || 0;
+						const day = parseInt(document.getElementById('day').value) || 0;
+
+						if (!age || !weight || !goal || !day) {
+							alert("請確保所有輸入欄位已填寫完整且有效。");
+							return;
+						}
+
+						const calorieGoal = goal * 2250; // 總共目標卡路里
+						const dailyCalorieGoal = calorieGoal / day; // 每日所需消耗的卡路里
+
+						// 找到符合的年齡範圍及運動強度(%HRR)
+						const ageRange = ageRanges.find(range => age >= range.minAge && age <= range.maxAge);
+						if (!ageRange) {
+							alert("年齡範圍不適用於建議計畫。");
+							return;
+						}
+
+						// 計算建議運動時間和目標心率
+						const time = Math.round(dailyCalorieGoal / (weight * 1.2 * ageRange.hrr / 6));
+						const targetHR = calculateTargetHR(ageRange.hrr);
+
+						// 更新表格內容
+						const tableBody = document.getElementById('exercise-table-body');
+						tableBody.innerHTML = `
+							<tr>
+								<td>${ageRange.hrr * 100}%</td>
+								<td>${time} 分鐘</td>
+								<td>${targetHR} bpm</td>
+							</tr>
+						`;
+
+						// 顯示運動建議表格
+						document.getElementById('exercise-suggestions').style.display = 'block';
+					}
+				</script>		
+				<script>
+					document.getElementById('day').addEventListener('input', function () {
+						const day = parseInt(this.value);
+						const weight = parseFloat(document.getElementById('w').value); // 取得體重
+						const goal = parseFloat(document.getElementById('goal').value); // 取得目標減重
+						const calorieGoal = goal * 2250; // 總共目標卡路里
+						const exerciseTable = document.getElementById('exercise-table');
+				
+						// 清空之前生成的表格
+						exerciseTable.innerHTML = '';
+				
+						// 限制輸入天數不能超過7
+						if (day > 7) {
+							alert("運動天數不能超過7天！");
+							return;
+						}
+				
+						// 生成表格標題
+						let tableHTML = `
+							<table>
+								 <tr>
+                        			<th>天數</th>
+                        			${[...Array(day).keys()].map(i => `<th>day ${i + 1}</th>`).join('')}
+                    			</tr>
+								<tr>
+									<th>時間(min)</th>
+									${[...Array(day).keys()].map(i => `<td id="time${i + 1}">自動計算</td>`).join('')}
+								</tr>
+								<tr>
+									<th>運動強度(%HRR)</th>
+									${[...Array(day).keys()].map(i => `<td><input type="number" id="met${i + 1}" placeholder="輸入運動強度%HRR"></td>`).join('')}
+								</tr>
+							</table>`;
+				
+						exerciseTable.innerHTML = tableHTML;
+				
+						
+					});
+				
+					// 按下"計算!"按鈕後計算每一天的運動時間
+					document.getElementById('calculate-time-btn').addEventListener('click', function () {
+						const day = parseInt(document.getElementById('day').value);
+						const weight = parseFloat(document.getElementById('w').value); // 取得體重
+						const goal = parseFloat(document.getElementById('goal').value); // 取得目標減重
+						const calorieGoal = goal * 2250; // 總共目標卡路里
+						const dailyCalorieGoal = calorieGoal / day; // 每天需要消耗的卡路里
+						let totalCalories = 0;
+				
+						for (let i = 1; i <= day; i++) {
+							const met = parseFloat(document.getElementById(`met${i}`).value) || 0; // 取得每個MET值
+							const timeElement = document.getElementById(`time${i}`);
+							
+							if (met > 0) {
+								// 計算時間：時間(min) = 每日卡路里需求 / (體重 * 1.2 * %Hrr / 600)
+								const time = Math.round(dailyCalorieGoal / (weight * 1.2 * met / 600));
+								timeElement.textContent = time; // 更新對應的時間顯示
+							} else {
+								timeElement.textContent = '輸入運動強度%HRR';
+							}
+							document.getElementById('calorie-goal').innerText = `總目標消耗卡路里: ${calorieGoal} 卡`
+						}
+						
+					});
+				</script>
+			</div>
+			
+			
+			<div class="col-md-6 pt-5" style="height: auto !important;">
+				<script async="" src="./index_files/f(9).txt" crossorigin="anonymous"
+					data-checked-head="true"></script>
+				<ins class="adsbygoogle" style="display: block; height: 0px;" data-ad-client="ca-pub-5693807149055825"
+					data-ad-slot="8266923868" data-ad-format="auto" data-full-width-responsive="true"
+					data-adsbygoogle-status="done" data-ad-status="unfilled">
+					<div id="aswift_2_host"
+						style="border: none; height: 0px; width: 540px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block; overflow: hidden; opacity: 0;">
+						<iframe id="aswift_2" name="aswift_2" browsingtopics="true"
+							style="left: 0px; position: absolute; top: 0px; border: 0px; width: 540px; height: 0px;"
+							sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
+							width="540" height="0" frameborder="0" marginwidth="0" marginheight="0" vspace="0"
+							hspace="0" allowtransparency="true" scrolling="no"
+							allow="attribution-reporting; run-ad-auction"
+							src="./index_files/ads(1).html" data-google-container-id="a!3"
+							tabindex="0" title="Advertisement" aria-label="Advertisement"
+							data-google-query-id="CJ7Rvuib04gDFf5EwgUdshMPHQ" data-load-complete="true"></iframe></div>
+				</ins>
+				<script>
+					(adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div>
+			<div class="mt-4 food-box mobile-top">
 				<div class="container mt-20 mobile-top">
 					<h4>運動強度指標對應表</h4>
 					<head>
@@ -544,104 +771,9 @@
 							document.getElementById('hr-100').textContent = calculateTargetHR(1.00);
 						}
 					</script>
-			
+					
 					<!-- End Tab panes -->
-				</div>
-			</div>
-			
-			<div class="col-md-6 pt-5" style="height: auto !important;">
-				<script async="" src="./index_files/f(9).txt" crossorigin="anonymous"
-					data-checked-head="true"></script>
-				<ins class="adsbygoogle" style="display: block; height: 0px;" data-ad-client="ca-pub-5693807149055825"
-					data-ad-slot="8266923868" data-ad-format="auto" data-full-width-responsive="true"
-					data-adsbygoogle-status="done" data-ad-status="unfilled">
-					<div id="aswift_2_host"
-						style="border: none; height: 0px; width: 540px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block; overflow: hidden; opacity: 0;">
-						<iframe id="aswift_2" name="aswift_2" browsingtopics="true"
-							style="left: 0px; position: absolute; top: 0px; border: 0px; width: 540px; height: 0px;"
-							sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
-							width="540" height="0" frameborder="0" marginwidth="0" marginheight="0" vspace="0"
-							hspace="0" allowtransparency="true" scrolling="no"
-							allow="attribution-reporting; run-ad-auction"
-							src="./index_files/ads(1).html" data-google-container-id="a!3"
-							tabindex="0" title="Advertisement" aria-label="Advertisement"
-							data-google-query-id="CJ7Rvuib04gDFf5EwgUdshMPHQ" data-load-complete="true"></iframe></div>
-				</ins>
-				<script>
-					(adsbygoogle = window.adsbygoogle || []).push({});
-				</script>
-			</div>
-			<div class="mt-4 food-box mobile-top">
-				<div class="exercise-plan">
-					<h3>推廣計畫</h3>
-					<div id="exercise-table"></div>
-						<h4 id="calorie-goal"></h4>
-						<button id="calculate-time-btn">計算!</button>
-				</div>
-				<script>
-					document.getElementById('day').addEventListener('input', function () {
-						const day = parseInt(this.value);
-						const weight = parseFloat(document.getElementById('w').value); // 取得體重
-						const goal = parseFloat(document.getElementById('goal').value); // 取得目標減重
-						const calorieGoal = goal * 9000; // 總共目標卡路里
-						const exerciseTable = document.getElementById('exercise-table');
-				
-						// 清空之前生成的表格
-						exerciseTable.innerHTML = '';
-				
-						// 限制輸入天數不能超過7
-						if (day > 7) {
-							alert("運動天數不能超過7天！");
-							return;
-						}
-				
-						// 生成表格標題
-						let tableHTML = `
-							<table>
-								 <tr>
-                        			<th>天數</th>
-                        			${[...Array(day).keys()].map(i => `<th>day ${i + 1}</th>`).join('')}
-                    			</tr>
-								<tr>
-									<th>時間(min)</th>
-									${[...Array(day).keys()].map(i => `<td id="time${i + 1}">自動計算</td>`).join('')}
-								</tr>
-								<tr>
-									<th>MET</th>
-									${[...Array(day).keys()].map(i => `<td><input type="number" id="met${i + 1}" placeholder="請輸入MET值"></td>`).join('')}
-								</tr>
-							</table>`;
-				
-						exerciseTable.innerHTML = tableHTML;
-				
-						
-					});
-				
-					// 按下"計算!"按鈕後計算每一天的運動時間
-					document.getElementById('calculate-time-btn').addEventListener('click', function () {
-						const day = parseInt(document.getElementById('day').value);
-						const weight = parseFloat(document.getElementById('w').value); // 取得體重
-						const goal = parseFloat(document.getElementById('goal').value); // 取得目標減重
-						const calorieGoal = goal * 9000; // 總共目標卡路里
-						const dailyCalorieGoal = calorieGoal / day; // 每天需要消耗的卡路里
-						let totalCalories = 0;
-				
-						for (let i = 1; i <= day; i++) {
-							const met = parseFloat(document.getElementById(`met${i}`).value) || 0; // 取得每個MET值
-							const timeElement = document.getElementById(`time${i}`);
-							
-							if (met > 0) {
-								// 計算時間：時間(min) = 每日卡路里需求 / (體重 * 1.2 * MET / 60)
-								const time = Math.round(dailyCalorieGoal / (weight * 1.2 * met / 60));
-								timeElement.textContent = time; // 更新對應的時間顯示
-							} else {
-								timeElement.textContent = '請輸入MET';
-							}
-							document.getElementById('calorie-goal').innerText = `總目標消耗卡路里: ${calorieGoal} 卡`
-						}
-						
-					});
-				</script>
+				</div>	
 			</div>
 		</div>
 	</div>
@@ -739,6 +871,13 @@
 </p>
 					<p style="font-size: 14px;">＊資料來源：衛福部國民健康署《台灣健康體能指引》手冊</p>
 				</div>
+
+				<div style="background-color: #ffcc00; padding: 20px; border-radius: 10px; margin-bottom: 15px; font-weight: bold; text-align: center; font-size: 1.2em; border: 2px solid #ff9900;">
+					<span style="color: #d60000;">❗❗</span>
+					<span style="color: #000;">如有特殊疾病或身體不適者，請務必依照醫生指示進行運動！</span>
+					<span style="color: #d60000;">❗❗</span>
+				</div>
+				
 				<!-- <div class="col-lg-2 col-6 mb-4">
 					<h3>關於我們</h3>
 					<ul>
@@ -814,10 +953,12 @@
 				let error_result = error_check();
 
 				if (error_result) {
-					let calc_result = Math.round(wc * w + sc * s - ac * age + (gc * g - c));
+					//  let calc_result = Math.round(wc * w + sc * s - ac * age + (gc * g - c));
+					
+				
 					// let h4str =
 					// 	`計算公式 (Mifflin-St Jeor formula) ${wc} × 體重 + ${sc} × 身高 - ${ac} × 年齡 +(166 × 性別 (男 1、女 0) - ${c}) = 基礎代謝率 (BMR)`;
-					$('#result').text('基礎代謝率 (BMR) 計算結果：' + calc_result);
+					//  $('#result').text('基礎代謝率 (tdee) 計算結果：' + adjustedResult);
 					/*HEHO*/
 					// $('#tdee-nutrition').val(calc_result);
 					// tdeeNutrition();
